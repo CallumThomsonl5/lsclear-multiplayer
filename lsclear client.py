@@ -1,3 +1,5 @@
+# Author: Callum Thomson
+
 from os import _exit
 from threading import Thread
 from time import sleep
