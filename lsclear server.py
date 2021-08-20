@@ -26,17 +26,20 @@ class main_program_thread(Thread):
     def run(self):
         ls = True
         while 1:
-            get_input = input("> ")
-            if ls and get_input == "ls":
-                self.score += 1
-                server.send("1")
-                ls = False
-            elif not ls and get_input == "clear":
-                self.score += 1
-                server.send("1")
-                ls = True
-            else:
-                print("wrong")
+            try:
+                get_input = input("> ")
+                if ls and get_input == "ls":
+                    self.score += 1
+                    server.send("1")
+                    ls = False
+                elif not ls and get_input == "clear":
+                    self.score += 1
+                    server.send("1")
+                    ls = True
+                else:
+                    print("wrong")
+            except ConnectionResetError:
+                print("Connection ended before sending point")
 
 class server_thread(Thread):
     def __init__(self, host, port):
@@ -68,6 +71,7 @@ class server_thread(Thread):
         self.conn.send(msg.encode("utf-8"))
 
 def end_game():
+    sleep(2)
     print(f"\nYour opponents score was {server.opponent_score}")
     print(f"Your score was {main.score}")
 
