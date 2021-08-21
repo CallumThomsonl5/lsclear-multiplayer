@@ -82,6 +82,8 @@ def end_game():
 
     if server.opponent_score < main.score:
         print("You win!")
+    elif server.opponent_score == main.score:
+        print("Draw")
     else:
         print("You lose")
 
