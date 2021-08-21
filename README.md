@@ -1,2 +1,2 @@
 # lsclear-multiplayer
-lsclear but with 2 players!!
+lsclear but with 2 players
