@@ -4,6 +4,8 @@ from os import _exit
 from threading import Thread
 from time import sleep
 import socket
+import json
+
 
 class timer_thread(Thread):
     def __init__(self, seconds, callback):
@@ -13,19 +15,21 @@ class timer_thread(Thread):
 
     def timer(self):
         sleep(self.seconds)
-        
+
     def run(self):
         self.timer()
         self.callback()
+
 
 class main_program_thread(Thread):
     def __init__(self):
         super().__init__()
         self.score = 0
+        self.going = True
 
     def run(self):
         ls = True
-        while 1:
+        while self.going:
             try:
                 get_input = input("> ")
                 if ls and get_input == "ls":
@@ -41,12 +45,16 @@ class main_program_thread(Thread):
             except ConnectionResetError:
                 pass
 
+
 class server_thread(Thread):
-    def __init__(self, host, port):
+    def __init__(self, host, port, auth, name=""):
         super().__init__()
         self.server = socket.socket()
+
         try:
             self.server.connect((host, port))
+            header = json.dumps({"auth": auth, "name": name})
+            self.server.send(header.encode("utf-8"))
         except ConnectionRefusedError:
             print("Server not running or can't be reached")
             _exit(0)
@@ -65,8 +73,10 @@ class server_thread(Thread):
     def send(self, msg):
         self.server.send(msg.encode("utf-8"))
 
+
 def end_game():
-    sleep(2)
+    main.going = False
+
     print(f"\nOpponent Score was {server.opponent_score}")
     print(f"Your score was {main.score}")
 
@@ -75,15 +85,16 @@ def end_game():
     else:
         print("You lose")
 
-    sleep(0.5)
     _exit(0)
 
 
-server = server_thread("192.168.0.70", 5000)
+# Server setup
+server = server_thread("192.168.0.70", 5000,
+                       "gwXu={f>2%4U5/>d", name="Player 2")
 server.start()
 
+# Other threads
 main = main_program_thread()
 main.start()
 
 timer_thread(15, end_game).start()
-

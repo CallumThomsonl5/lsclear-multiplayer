@@ -4,6 +4,8 @@ from os import _exit
 from threading import Thread
 from time import sleep
 import socket
+import json
+
 
 class timer_thread(Thread):
     def __init__(self, seconds, callback):
@@ -13,19 +15,21 @@ class timer_thread(Thread):
 
     def timer(self):
         sleep(self.seconds)
-        
+
     def run(self):
         self.timer()
         self.callback()
+
 
 class main_program_thread(Thread):
     def __init__(self):
         super().__init__()
         self.score = 0
+        self.going = True
 
     def run(self):
         ls = True
-        while 1:
+        while self.going:
             try:
                 get_input = input("> ")
                 if ls and get_input == "ls":
@@ -41,6 +45,7 @@ class main_program_thread(Thread):
             except ConnectionResetError:
                 print("Connection ended before sending point")
 
+
 class server_thread(Thread):
     def __init__(self, host, port):
         super().__init__()
@@ -54,9 +59,24 @@ class server_thread(Thread):
         print("Waiting for opponent...")
 
         self.conn, self.addr = self.server.accept()
-        print(f"\n{self.addr} connected")
+        header = json.loads(self.conn.recv(1024).decode("utf-8"))
+
+        if header["auth"] != "gwXu={f>2%4U5/>d":
+            self.conn.close()
+            print("Bad client authentication")
+            _exit(0)
+
+        try:
+            if header["name"] == "":
+                self.opponent_name = "Player 2"
+            else:
+                self.opponent_name = header["name"]
+        except KeyError:
+            self.opponent_name = "Player 2"
+
+        print(
+            f"\n[Lsclear] {self.addr} {self.opponent_name} connected with headers: {header}")
         self.started = True
-            
 
         try:
             while True:
@@ -70,20 +90,21 @@ class server_thread(Thread):
     def send(self, msg):
         self.conn.send(msg.encode("utf-8"))
 
+
 def end_game():
-    sleep(2)
+    main.going = False
+
     print(f"\nYour opponents score was {server.opponent_score}")
     print(f"Your score was {main.score}")
 
     if server.opponent_score < main.score:
         print("You win!")
+    elif server.opponent_score == main.score:
+        print("Draw")
     else:
         print("You lose")
 
-    sleep(0.5)
     _exit(0)
-
-
 
 
 server = server_thread("", 5000)
