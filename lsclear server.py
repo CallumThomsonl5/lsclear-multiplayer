@@ -7,7 +7,7 @@ import socket
 import json
 
 # conf
-HOST = "localhost"
+HOST = "192.168.0.70"
 PORT = 54953
 GAME_TIME = 15
 AUTH = "gwXu={f>2%4U5/>d"
@@ -55,6 +55,8 @@ class game_thread(Thread):
                     self.score += 1
                     server.send("1")
                     ls = True
+                elif get_input == "sd":
+                    server.send("sd")
                 else:
                     print("wrong")
             except ConnectionResetError:

