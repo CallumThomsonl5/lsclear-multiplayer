@@ -4,6 +4,17 @@ from os import _exit
 from threading import Thread
 from time import sleep
 
+# conf
+HOST = "localhost"
+PORT = 54789
+
+GAME_TIME = 15
+DESIRED_SCORE = 10000
+
+# score
+my_score = 0
+opponent_score = 0
+
 
 # define threads
 class send_points(Thread):
@@ -29,24 +40,12 @@ class timer(Thread):
         self.s = s
 
     def run(self):
-        global opponent_score
         sleep(self.s)
         
         # run on exit
         conn.close()
         print(f"Opponent score was {opponent_score}")
         _exit(0)
-
-# conf
-HOST = "localhost"
-PORT = 54789
-
-GAME_TIME = 15
-DESIRED_SCORE = 10000
-
-# globals
-my_score = 0
-opponent_score = 0
 
 
 # init socket
@@ -74,7 +73,7 @@ if header["auth"] != "gwXu={f>2%4U5/>d":
             _exit(0)
 
 # print convincing message again
-print(f"\n[Lsclear] {addr} connected")
+print(f"\n[LSCLEAR] {addr[0]} connected")
 
 # start timer thread
 timer_th = timer(GAME_TIME)
@@ -93,3 +92,4 @@ try:
                 opponent_score += 1
 except ConnectionResetError:
     pass
+

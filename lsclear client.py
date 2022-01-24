@@ -1,5 +1,4 @@
 # Author: Callum Thomson
-# a
 
 from os import _exit
 from threading import Thread
@@ -8,21 +7,39 @@ import socket
 import json
 
 
-class timer_thread(Thread):
-    def __init__(self, seconds, callback):
-        super().__init__()
-        self.seconds = seconds
-        self.callback = callback
+# conf
+HOST = "localhost"
+PORT = 54953
+AUTH = "gwXu={f>2%4U5/>d"
+GAME_TIME = 15
 
-    def timer(self):
-        sleep(self.seconds)
+
+class timer_thread(Thread):
+    def __init__(self, s):
+        super().__init__()
+        self.s = s
+
 
     def run(self):
-        self.timer()
-        self.callback()
+        global game
+        sleep(self.s)
+
+        game.going = False
+
+        print(f"\nOpponent Score was {server.opponent_score}")
+        print(f"Your score was {game.score}")
+
+        if server.opponent_score < game.score:
+            print("You win!")
+        elif server.opponent_score == game.score:
+            print("Draw")
+        else:
+            print("You lose")
+
+        _exit(0)
 
 
-class main_program_thread(Thread):
+class game_thread(Thread):
     def __init__(self):
         super().__init__()
         self.score = 0
@@ -48,13 +65,13 @@ class main_program_thread(Thread):
 
 
 class server_thread(Thread):
-    def __init__(self, host, port, auth, name=""):
+    def __init__(self, host, port, auth):
         super().__init__()
         self.server = socket.socket()
 
         try:
             self.server.connect((host, port))
-            header = json.dumps({"auth": auth, "name": name})
+            header = json.dumps({"auth": auth})
             self.server.send(header.encode("utf-8"))
         except ConnectionRefusedError:
             print("Server not running or can't be reached")
@@ -75,29 +92,11 @@ class server_thread(Thread):
         self.server.send(msg.encode("utf-8"))
 
 
-def end_game():
-    main.going = False
-
-    print(f"\nOpponent Score was {server.opponent_score}")
-    print(f"Your score was {main.score}")
-
-    if server.opponent_score < main.score:
-        print("You win!")
-    elif server.opponent_score == main.score:
-        print("Draw")
-    else:
-        print("You lose")
-
-    _exit(0)
-
-
-# Server setup
-server = server_thread("192.168.0.70", 5000,
-                       "gwXu={f>2%4U5/>d", name="Player 2")
+# start threads
+server = server_thread(HOST, PORT, AUTH)
 server.start()
 
-# Other threads
-main = main_program_thread()
-main.start()
+game = game_thread()
+game.start()
 
-timer_thread(15, end_game).start()
+timer_thread(GAME_TIME).start()

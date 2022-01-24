@@ -1,5 +1,4 @@
 # Author: Callum Thomson
-# a
 
 from os import _exit
 from threading import Thread
@@ -7,22 +6,37 @@ from time import sleep
 import socket
 import json
 
+# conf
+HOST = "localhost"
+PORT = 54953
+GAME_TIME = 15
+AUTH = "gwXu={f>2%4U5/>d"
 
+# threads
 class timer_thread(Thread):
-    def __init__(self, seconds, callback):
+    def __init__(self, s):
         super().__init__()
-        self.seconds = seconds
-        self.callback = callback
-
-    def timer(self):
-        sleep(self.seconds)
+        self.s = s
 
     def run(self):
-        self.timer()
-        self.callback()
+        global game
 
+        sleep(self.s)
+        game.going = False
 
-class main_program_thread(Thread):
+        print(f"\nYour opponents score was {server.opponent_score}")
+        print(f"Your score was {game.score}")
+
+        if server.opponent_score < game.score:
+            print("You win!")
+        elif server.opponent_score == game.score:
+            print("Draw")
+        else:
+            print("You lose")
+
+        _exit(0)
+
+class game_thread(Thread):
     def __init__(self):
         super().__init__()
         self.score = 0
@@ -48,12 +62,13 @@ class main_program_thread(Thread):
 
 
 class server_thread(Thread):
-    def __init__(self, host, port):
+    def __init__(self, host, port, auth):
         super().__init__()
         self.server = socket.socket()
         self.server.bind((host, port))
         self.opponent_score = 0
-        self.started = False
+        self.auth = auth
+        self.client_ready = False
 
     def run(self):
         self.server.listen()
@@ -62,22 +77,13 @@ class server_thread(Thread):
         self.conn, self.addr = self.server.accept()
         header = json.loads(self.conn.recv(1024).decode("utf-8"))
 
-        if header["auth"] != "gwXu={f>2%4U5/>d":
+        if header["auth"] != self.auth:
             self.conn.close()
             print("Bad client authentication")
             _exit(0)
 
-        try:
-            if header["name"] == "":
-                self.opponent_name = "Player 2"
-            else:
-                self.opponent_name = header["name"]
-        except KeyError:
-            self.opponent_name = "Player 2"
-
-        print(
-            f"\n[Lsclear] {self.addr} {self.opponent_name} connected with headers: {header}")
-        self.started = True
+        print(f"\n[LSCLEAR] {self.addr[0]} connected")
+        self.client_ready = True
 
         try:
             while True:
@@ -92,29 +98,13 @@ class server_thread(Thread):
         self.conn.send(msg.encode("utf-8"))
 
 
-def end_game():
-    main.going = False
-
-    print(f"\nYour opponents score was {server.opponent_score}")
-    print(f"Your score was {main.score}")
-
-    if server.opponent_score < main.score:
-        print("You win!")
-    elif server.opponent_score == main.score:
-        print("Draw")
-    else:
-        print("You lose")
-
-    _exit(0)
-
-
-server = server_thread("", 5000)
+server = server_thread(HOST, PORT, AUTH)
 server.start()
 
-main = main_program_thread()
+game = game_thread()
 
 while 1:
-    if server.started == True:
-        main.start()
-        timer_thread(15, end_game).start()
+    if server.client_ready == True:
+        game.start()
+        timer_thread(GAME_TIME).start()
         break
