@@ -7,7 +7,7 @@ import socket
 import json
 
 # conf
-HOST = "192.168.0.70"
+HOST = "192.168.0.46"
 PORT = 54953
 GAME_TIME = 15
 AUTH = "gwXu={f>2%4U5/>d"

